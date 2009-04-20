@@ -39,7 +39,7 @@ The easiest way to see what this tag does is to look at the source.
           <h1 param="app-name"><a href="#{base_url}/"><app-name/></a></h1>
           <main-nav current="&title" param/>
         </header>
-        <section with-flash-messages param="content"/>
+        <section param="content"/>
         <footer class="page-footer" param/>
         <page-scripts param/>
       </set-scoped>
@@ -60,11 +60,11 @@ The easiest way to see what this tag does is to look at the source.
 <!-- nodoc. -->
 <def tag="index-page-content" polymorphic/>
 <!-- nodoc. -->
-<def tag="new-page"   polymorphic/>
+<def tag="new-page-content"   polymorphic/>
 <!-- nodoc. -->
-<def tag="show-page"  polymorphic/>
+<def tag="show-page-content"  polymorphic/>
 <!-- nodoc. -->
-<def tag="edit-page"  polymorphic/>
+<def tag="edit-page-content"  polymorphic/>
 
 <!-- The page rendered by default in the case of a permission-denied error
   

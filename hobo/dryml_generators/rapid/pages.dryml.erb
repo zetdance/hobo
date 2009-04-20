@@ -50,25 +50,6 @@ new_form = !new_link && linkable?(model, :create, :method => :post)
 </def>
 
 
-<def tag="new-page" for="<%= model.name %>">
-  <page merge title="New <%= model_name :title %>">
-    <body: class="new-page <%= model_class %>" param/>
-    
-    <content: param>
-      <section param="content-header">
-        <h2 param="heading">New <%= model_name :title %></h2>
-      </section>
-      
-      <section param="content-body">
-        <form param>
-          <submit: label="Create <%= model_name :title %>"/>
-        </form>
-      </section>
-    </content:>
-  </page>
-</def>
-
-
 <%
 back_link      = model.dependent_on.detect { |x| !(model.reflections[x].klass < Hobo::User) }
 boolean_fields = model.columns.select { |c| c.type == :boolean }.*.name
@@ -95,119 +76,63 @@ unless model.view_hints.secondary_children.empty?
   aside_collections.reject! { |refl, reverse| reverse.nil? }
 end
 -%>
-<def tag="show-page" for="<%= model.name %>">
-  <page merge title="<%= model_name :title %>">
-
-    <body: class="show-page <%= model_class %>" param/>
-
-    <content: param>
-<% if aside_collections -%>
-      <section-group>
-        <section param="main-content">
-<% end -%>
-          <header param="content-header">
+<def tag="show-page-content" for="<%= model.name %>">
+  <header param="content-header">
 <% if  back_link -%>
-            <a:<%= back_link %> param="parent-link">&laquo; <name/></a:<%= back_link %>>
+    <a:<%= back_link %> param="parent-link">&laquo; <name/></a:<%= back_link %>>
 <% end -%>
-            <h2 param="heading"><name/></h2>
+    <h2 param="heading"><name/></h2>
 <% if boolean_fields -%>
 
-            <record-flags fields="<%= boolean_fields * ', ' %>" param/>
+    <record-flags fields="<%= boolean_fields * ', ' %>" param/>
 <% end -%>
 <% if creator_link -%>
 
-            <a:<%= model.creator_attribute %> param="creator-link"/>
+    <a:<%= model.creator_attribute %> param="creator-link"/>
 <% elsif creator -%>        
 
-            <view:get-creator param="creator-name"/>
+    <view:get-creator param="creator-name"/>
 <% end -%>
 <% if edit_link -%>
 
-            <a action="edit" if="&can_edit?" param="edit-link">Edit <%= model_name :title %></a>
+    <a action="edit" if="&can_edit?" param="edit-link">Edit <%= model_name :title %></a>
 <% end -%>
-          </header>
-    
-          <section param="content-body"<%= ' with-flash-messages' if aside_collections %>>
+  </header>
+
+  <section param="content-body">
 <% if main_content -%>
-            <view:<%= main_content %> param="description"/>
+    <view:<%= main_content %> param="description"/>
 <% end -%>
 <% if show_fields.any? -%>
-            <field-list fields="<%= show_fields * ', ' %>" param/>
+    <field-list fields="<%= show_fields * ', ' %>" param/>
 <% end -%>
 <% if collection -%>
-            <section param="collection-section">
-              <h3 param="collection-heading"><%= '<Your/>' if is_user_model %><%= collection.to_s.titleize %></h3>
-              
+    <section param="collection-section">
+      <h3 param="collection-heading"><%= '<Your/>' if is_user_model %><%= collection.to_s.titleize %></h3>
+      
 <%   if sortable_collection?(collection) -%>
-              <sortable-collection:<%= collection %> param="collection"/>
+      <sortable-collection:<%= collection %> param="collection"/>
 <%   else -%>
-              <collection:<%= collection %> param/>
+      <collection:<%= collection %> param/>
 <%   end -%>
 <%   if add_link -%>
 
-              <a:<%= collection %> action="new" if="&can_create?(@<%= model_name.underscore %>.<%= collection %>)" param="new-link">New <%= collection.to_s.singularize.titleize %></a:<%= collection %>>
+      <a:<%= collection %> action="new" if="&can_create?(@<%= model_name.underscore %>.<%= collection %>)" param="new-link">New <%= collection.to_s.singularize.titleize %></a:<%= collection %>>
 <%   elsif add_form -%>
 
-              <section param="add-to-collection" if="&can_create?(@<%= model_name.underscore %>.<%= collection %>)">
-                <h3 param="add-form-heading">Add <%= a_or_an collection.to_s.singularize.titleize %></h3>
-                <form with="&@<%= collection_class.name.underscore %> || new_for_current_user(@<%= model_name.underscore %>.<%= collection %>)" owner="<%= owner %>" without-cancel param>
-                  <field-list: skip="<%= owner %>"/>
-                  <submit: label="Add"/>
-                </form>
-              </section>
+      <section param="add-to-collection" if="&can_create?(@<%= model_name.underscore %>.<%= collection %>)">
+        <h3 param="add-form-heading">Add <%= a_or_an collection.to_s.singularize.titleize %></h3>
+        <form with="&@<%= collection_class.name.underscore %> || new_for_current_user(@<%= model_name.underscore %>.<%= collection %>)" owner="<%= owner %>" without-cancel param>
+          <field-list: skip="<%= owner %>"/>
+          <submit: label="Add"/>
+        </form>
+      </section>
 <%   end -%>
-            </section>
+    </section>
 <% end # of main collection -%>
-          </section>
-<% if aside_collections -%>
-        </section>
-        
-        <aside param>
-<%   for refl, reverse_refl in aside_collections -%>
-<%     if linkable?(refl.klass, :"index_for_#{reverse_refl.name}") -%>
-          <preview-with-more:<%= refl.name %>.recent param="<%= refl.name %>-preview">
-<%       if is_user_model -%>
-            <heading:><Your with="&@<%= model_name.underscore %>"/> <%= refl.name.to_s.titleize %></heading:>
-<%       end -%>
-            <more:>more</more:>
-          </preview-with-more:<%= refl.name %>.recent>
-<%     else -%>
-          <section param="<%= refl.name %>-collection-section">
-            <h3 param="<%= refl.name %>-collection"><%= refl.name.to_s.titleize %></h3>
-            <collection:<%= refl.name %>/>
-          </section>
-<%     end -%>
-<%   end -%>
-        </aside>
-      </section-group>
-<% end -%>
-    </content:>
-    
-  </page>
+  </section>
 </def>
 
-
-<%
-name_attribute = model.name_attribute
--%>
-<def tag="edit-page" for="<%= model.name %>">
-  <page merge title="Edit <%= model_name :title %>">
-
-    <body: class="edit-page <%= model_class %>" param/>
-
-    <content:>
-      <section param="content-header">
-        <h2 param="heading">Edit <type-name/></h2>
-        <delete-button label="Remove This <%= model_name :title %>" param/>
-      </section>
-
-      <section param="content-body">
-        <form param/>
-      </section>
-    </content:>
-    
-  </page>
-</def>
 
 <% controller.owner_actions.each_pair do |owner, actions| -%>
 <%
