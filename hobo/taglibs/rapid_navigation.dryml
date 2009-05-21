@@ -43,8 +43,8 @@ Then in your pages you can call the tag like this
      name ||= body.gsub(/<.*?>/, '').strip
      -%>
   <li class="#{'current' if (c = scope.current_navigation) && c.downcase == name.downcase}"
-      merge-attrs="&attributes - attrs_for(:a)">
-    <a merge-attrs="&attributes & attrs_for(:a)"><%= body %></a>
+    merge-attrs="&attributes - (attrs_for(:a)+['target'])">
+  <a merge-attrs="&attributes & (attrs_for(:a)+['target'])"><%= body %></a>
   </li>
 </def>
 
