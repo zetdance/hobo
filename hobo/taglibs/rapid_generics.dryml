@@ -30,7 +30,7 @@ The `<li>` tags are automatically given a 'model ID' CSS class, which means the 
  -->
 <def tag="collection">
   <ul class="collection #{collection_name :dasherize => true}" merge-attrs unless="empty?">
-    <li param="item" class="#{scope.even_odd} #{model_id_class}" repeat="&select_viewable">
+    <li param="item" class="#{scope.even_odd} #{model_id_class} #{first_or_last_class}" repeat="&select_viewable">
       <do param="default"><card param/></do>
     </li>
   </ul>

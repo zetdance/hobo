@@ -197,6 +197,16 @@ module Hobo
     def last_item?
       this == scope.repeat_collection.last
     end
+    
+    def first_or_last_class
+      if first_item?
+        "first"
+      elsif last_item?
+        "last"
+      else
+        ""
+      end
+    end
 
 
     def comma_split(x)
