@@ -40,10 +40,10 @@ The easiest way to see what this tag does is to look at the source.
         <header class="page-header" param>
           <account-nav if="&login_url(Hobo::User.default_user_model)" param/>
           <h1 param="app-name"><a href="#{base_url}/"><app-name/></a></h1>
-          <live-search param if="&defined_route? :site_search"/>
+          <live-search param if="&defined_route? :site_search" class="site-search"/>
           <main-nav current="&title" param/>
         </header>
-        <section param="content"/>
+        <section param="content" class="page-body"/>
         <footer class="page-footer" param/>
         <page-scripts param/>
       </set-scoped>
