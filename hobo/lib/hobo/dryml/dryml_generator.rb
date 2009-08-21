@@ -48,6 +48,8 @@ module Hobo
       def self.run
         @generator ||= DrymlGenerator.new
         @generator.run
+      rescue ActiveRecord::StatementInvalid => e
+        Rails.logger.error "!!! Database Error during DRYML generators: #{e.to_s} !!!"
       end
       
       
