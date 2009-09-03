@@ -70,6 +70,8 @@ module Hobo
       names.map do |name|
         name.safe_constantize || (@controller_names.delete name; nil)
       end.compact
+    rescue Errno::ENOENT
+      Rails.logger.warn "WARNING: Couldn't get controller directory listing for: #{dir}"
     end
     
 
