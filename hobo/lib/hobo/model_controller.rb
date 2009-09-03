@@ -357,9 +357,18 @@ module Hobo
 
     def re_render_form(default_action=nil)
       if params[:page_path]
+        @invalid_record = this        
         controller, view = Controller.controller_and_view_for(params[:page_path])
         view = default_action if view == Dryml::EMPTY_PAGE
-        render :template => "#{controller}/#{view}"
+
+        # Hack fix for Bug 477.  See also bug 489.
+        if view=="index"
+          params['action'] = 'index'
+          self.action_name = 'index'
+          index
+        else
+          render :template => "#{controller}/#{view}"
+        end
       else
         render :action => default_action
       end
@@ -501,7 +510,7 @@ module Hobo
       options = args.extract_options!
       self.this ||= args.first || new_for_create
       this.user_update_attributes(current_user, options[:attributes] || attribute_parameters || {})
-      create_response(:new, &b)
+      create_response(:new, options, &b)
     end
     
     
@@ -510,7 +519,7 @@ module Hobo
       owner, association = find_owner_and_association(owner)
       self.this ||= args.first || association.new
       this.user_update_attributes(current_user, options[:attributes] || attribute_parameters || {})
-      create_response(:"new_for_#{owner}", &b)    
+      create_response(:"new_for_#{owner}", options, &b)    
     end
 
 
@@ -531,10 +540,13 @@ module Hobo
         t
     end
     
+    def flash_notice(message)
+      flash[:notice] = message unless request.xhr?
+    end
 
 
     def create_response(new_action, options={}, &b)
-      flash[:notice] = "The #{@this.class.name.titleize.downcase} was created successfully" if !request.xhr? && valid?
+      flash_notice "The #{@this.class.name.titleize.downcase} was created successfully" if valid?
 
       response_block(&b) or
         if valid?
@@ -569,7 +581,7 @@ module Hobo
 
 
     def update_response(in_place_edit_field=nil, options={}, &b)
-      flash[:notice] = "Changes to the #{@this.class.name.titleize.downcase} were saved" if !request.xhr? && valid?
+      flash_notice "Changes to the #{@this.class.name.titleize.downcase} were saved" if valid?
 
       response_block(&b) or
         if valid?
@@ -605,8 +617,8 @@ module Hobo
       options = args.extract_options!
       self.this ||= args.first || find_instance
       this.user_destroy(current_user)
-      flash[:notice] = "The #{model.name.titleize.downcase} was deleted" unless request.xhr?
-      destroy_response(&b)
+      flash_notice "The #{model.name.titleize.downcase} was deleted"
+      destroy_response(options, &b)
     end
 
 
@@ -622,7 +634,7 @@ module Hobo
     # --- Lifecycle Actions --- #
 
     def creator_page_action(name, options={}, &b)
-      self.this = model.new
+      self.this ||= model.new
       this.exempt_from_edit_checks = true
       @creator = model::Lifecycle.creator(name)
       raise Hobo::PermissionDeniedError unless @creator.allowed?(current_user)
@@ -719,6 +731,7 @@ module Hobo
 
     def permission_denied(error)
       self.this = true # Otherwise this gets sent user_view
+      logger.info "Hobo: Permission Denied!"
       @permission_error = error
       if "permission_denied".in?(self.class.superclass.instance_methods)
         super
