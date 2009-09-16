@@ -10,6 +10,8 @@ module Hobo
     
     class DrymlGenerator
       
+      class DrymlGeneratorError < RuntimeError; end
+      
       TEMPLATES = "#{HOBO_ROOT}/dryml_generators"
       OUTPUT    = "#{RAILS_ROOT}/app/views/taglibs/auto"
       
@@ -20,7 +22,6 @@ module Hobo
       end
       
       def self.enable
-        
         # Unfortunately the dispatcher callbacks don't give us the hook we need (after routes are reloaded) 
         # so we have to alias_method_chain
         ActionController::Dispatcher.class_eval do
@@ -49,7 +50,7 @@ module Hobo
         @generator ||= DrymlGenerator.new
         @generator.run
       rescue ActiveRecord::StatementInvalid => e
-        Rails.logger.error "!!! Database Error during DRYML generators: #{e.to_s} !!!"
+        raise DrymlGeneratorError, e.to_s
       end
       
       
